@@ -1,4 +1,6 @@
-const { src, task, parallel, series, dest, watch } = require('gulp');
+const {
+  src, task, parallel, series, dest, watch,
+} = require('gulp');
 const rename = require('gulp-rename');
 const sass = require('gulp-sass');
 const sourcemaps = require('gulp-sourcemaps');
@@ -32,7 +34,7 @@ const paths = {
   distCSS: 'dist/assets/css/',
   distJS: 'dist/assets/js/',
   distIMG: 'dist/assets/images/',
-  distFONTS: 'dist/assets/fonts/'
+  distFONTS: 'dist/assets/fonts/',
 };
 
 /* In case we have multiple js files, for example, front-end files or back-end files */
@@ -41,9 +43,9 @@ const jsFiles = [paths.srcJS];
 function server() {
   browserSync.init({
     server: {
-      baseDir: paths.dist
+      baseDir: paths.dist,
     },
-    port: 80
+    port: 80,
   });
 }
 
@@ -65,14 +67,14 @@ function buildCSS(done) {
     .pipe(
       sass({
         errorLogToConsole: true,
-        outputStyle: 'compressed'
-      })
+        outputStyle: 'compressed',
+      }),
     )
     .on('error', console.error.bind(console))
     .pipe(
       autoprefixer({
-        cascade: false
-      })
+        cascade: false,
+      }),
     )
     .pipe(rename({ suffix: '.min' }))
     .pipe(sourcemaps.write('./'))
@@ -82,21 +84,19 @@ function buildCSS(done) {
 }
 
 function buildJS(done) {
-  jsFiles.map(entry => {
-    return browserify({
-      entries: [paths.jsFolder + entry]
-    })
-      .transform(babelify, { presets: ['@babel/preset-env'] })
-      .bundle()
-      .pipe(source(entry))
-      .pipe(rename({ extname: '.min.js' }))
-      .pipe(buffer())
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(uglify())
-      .pipe(sourcemaps.write('./'))
-      .pipe(dest(paths.distJS))
-      .pipe(browserSync.stream());
-  });
+  jsFiles.map((entry) => browserify({
+    entries: [paths.jsFolder + entry],
+  })
+    .transform(babelify, { presets: ['airbnb'] })
+    .bundle()
+    .pipe(source(entry))
+    .pipe(rename({ extname: '.min.js' }))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(uglify())
+    .pipe(sourcemaps.write('./'))
+    .pipe(dest(paths.distJS))
+    .pipe(browserSync.stream()));
   done();
 }
 
@@ -106,10 +106,10 @@ function optmizeIMG(done) {
       cache(
         imagemin([
           imageminMozjpeg({
-            quality: 60
-          })
-        ])
-      )
+            quality: 60,
+          }),
+        ]),
+      ),
     )
     .pipe(dest(paths.distIMG));
   done();
@@ -134,4 +134,4 @@ task('js', buildJS);
 task('images', optmizeIMG);
 task('fonts', moveFonts);
 task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, moveFonts));
-task('watch', parallel(server, watchFiles));
+task('default', parallel(server, watchFiles));

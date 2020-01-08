@@ -1,3 +1,3 @@
-import App from './modules/app';
+const nome = 'leonardo';
 
-const app = new App();
+console.log(`Olá, ${nome}!`);

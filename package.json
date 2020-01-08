@@ -19,7 +19,7 @@
 	"devDependencies": {
 		"@babel/cli": "^7.7.5",
 		"@babel/core": "^7.0.0",
-		"@babel/preset-env": "^7.7.6",
+		"babel-preset-airbnb": "^4.4.0",
 		"babelify": "^10.0.0",
 		"browser-sync": "^2.26.7",
 		"browserify": "^16.5.0",

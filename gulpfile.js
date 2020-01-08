@@ -9,6 +9,7 @@ const uglify = require('gulp-uglify');
 const htmlmin = require('gulp-htmlmin');
 const imagemin = require('gulp-imagemin');
 const imageminMozjpeg = require('imagemin-mozjpeg');
+const imageminPngquant = require('imagemin-pngquant');
 const cache = require('gulp-cache');
 const browserify = require('browserify');
 const babelify = require('babelify');
@@ -21,13 +22,13 @@ const paths = {
   srcHTML: 'src/pages/*.html',
   srcJS: 'main.js',
   srcCSS: 'src/assets/scss/main.scss',
-  srcIMG: 'src/assets/images/**/*.+(png|jpg|jpeg|gif|svg)',
+  srcIMG: 'src/assets/images/**/*.+(png|jpg|jpeg)',
   srcFONTS: 'src/assets/fonts/**/*.*',
 
   watchHTML: 'src/pages/*.html',
   watchCSS: 'src/assets/scss/**/*.scss',
   watchJS: 'src/assets/js/**/*.js',
-  watchIMG: 'src/assets/images/**/*.*',
+  watchIMG: 'src/assets/images/**/*.+(png|jpg|jpeg)',
   watchFONTS: 'src/assets/fonts/**/*.*',
 
   dist: 'dist/',
@@ -108,6 +109,10 @@ function optmizeIMG(done) {
           imageminMozjpeg({
             quality: 60,
           }),
+          imageminPngquant({
+            speed: 1,
+            quality: [0.95, 1],
+          }),
         ]),
       ),
     )
@@ -122,9 +127,9 @@ function moveFonts(done) {
 
 function watchFiles() {
   watch(paths.watchHTML, series(buildHTML, reload));
-  watch(paths.watchCSS, series(buildCSS, reload));
+  watch(paths.watchCSS, series(buildCSS));
   watch(paths.watchJS, series(buildJS, reload));
-  watch(paths.watchIMG, series(optmizeIMG, reload));
+  watch(paths.watchIMG, optmizeIMG);
   watch(paths.watchFONTS, series(moveFonts, reload));
 }
 

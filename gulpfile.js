@@ -107,14 +107,12 @@ function optmizeIMG(done) {
   src(paths.srcIMG)
     .pipe(cache(
       imagemin([
-        imageminPngquant({
-          speed: 1,
-          quality: [0.95, 1],
-        }),
-        imageminMozjpeg({
-          quality: 70,
-        }),
-      ]),
+        imageminMozjpeg({ quality: 70 }),
+        imageminPngquant({ speed: 1, quality: [0.95, 1] }),
+      ],
+      {
+        verbose: true,
+      }),
     ))
     .pipe(dest(paths.distIMG));
   done();

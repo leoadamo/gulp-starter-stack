@@ -8,9 +8,9 @@ const autoprefixer = require('gulp-autoprefixer');
 const uglify = require('gulp-uglify');
 const htmlmin = require('gulp-htmlmin');
 const imagemin = require('gulp-imagemin');
+const webp = require('gulp-webp');
 const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
-const cache = require('gulp-cache');
 const browserify = require('browserify');
 const babelify = require('babelify');
 const source = require('vinyl-source-stream');
@@ -104,18 +104,23 @@ function buildJS(done) {
 function optmizeIMG(done) {
   src(paths.srcIMG)
     .pipe(
-      cache(
-        imagemin([
-          imageminMozjpeg({
-            quality: 60,
-          }),
-          imageminPngquant({
-            speed: 1,
-            quality: [0.95, 1],
-          }),
-        ]),
-      ),
+      imagemin([
+        imageminMozjpeg({
+          quality: 70,
+        }),
+        imageminPngquant({
+          speed: 1,
+          quality: [0.95, 1],
+        }),
+      ]),
     )
+    .pipe(dest(paths.distIMG));
+  done();
+}
+
+function webpConvert(done) {
+  src(paths.srcIMG)
+    .pipe(webp())
     .pipe(dest(paths.distIMG));
   done();
 }
@@ -129,7 +134,7 @@ function watchFiles() {
   watch(paths.watchHTML, series(buildHTML, reload));
   watch(paths.watchCSS, series(buildCSS));
   watch(paths.watchJS, series(buildJS, reload));
-  watch(paths.watchIMG, optmizeIMG);
+  watch(paths.watchIMG, series(optmizeIMG, webpConvert));
   watch(paths.watchFONTS, series(moveFonts, reload));
 }
 
@@ -137,6 +142,7 @@ task('html', buildHTML);
 task('css', buildCSS);
 task('js', buildJS);
 task('images', optmizeIMG);
+task('images', webpConvert);
 task('fonts', moveFonts);
-task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, moveFonts));
+task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts));
 task('default', parallel(server, watchFiles));

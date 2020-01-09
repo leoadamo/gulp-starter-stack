@@ -108,7 +108,7 @@ function optmizeIMG(done) {
     .pipe(cache(
       imagemin([
         imageminMozjpeg({ quality: 70 }),
-        imageminPngquant({ speed: 1, quality: [0.95, 1] }),
+        imageminPngquant({ speed: 1, quality: [0.3, 0.5] }),
       ],
       {
         verbose: true,

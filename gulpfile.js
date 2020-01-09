@@ -13,8 +13,10 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const browserify = require('browserify');
 const babelify = require('babelify');
+const cache = require('gulp-cache');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
+const del = require('del');
 const browserSync = require('browser-sync').create();
 
 const paths = {
@@ -103,30 +105,36 @@ function buildJS(done) {
 
 function optmizeIMG(done) {
   src(paths.srcIMG)
-    .pipe(
+    .pipe(cache(
       imagemin([
-        imageminMozjpeg({
-          quality: 70,
-        }),
         imageminPngquant({
           speed: 1,
           quality: [0.95, 1],
         }),
+        imageminMozjpeg({
+          quality: 70,
+        }),
       ]),
-    )
+    ))
     .pipe(dest(paths.distIMG));
   done();
 }
 
 function webpConvert(done) {
   src(paths.srcIMG)
-    .pipe(webp())
+    .pipe(cache(webp()))
     .pipe(dest(paths.distIMG));
   done();
 }
 
 function moveFonts(done) {
   src(paths.srcFONTS).pipe(dest(paths.distFONTS));
+  done();
+}
+
+function clearDist(done) {
+  cache.clearAll();
+  del.sync([paths.dist]);
   done();
 }
 
@@ -145,4 +153,5 @@ task('images', optmizeIMG);
 task('images', webpConvert);
 task('fonts', moveFonts);
 task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts));
+task('clear', clearDist);
 task('default', parallel(server, watchFiles));

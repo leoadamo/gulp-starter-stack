@@ -1,7 +1,7 @@
 # My Gulp Starter Stack
 
-This is my approach for develop my projects using Gulp v4.0.
-There are multiples approaches and maybe some features in this files are not usefull for you, so feel free for implement your own or to make PRs :sunglasses:
+This is my approach for develop projects using Gulp v4.0.
+There are multiples approaches and maybe some features in this file are not usefull for you, so feel free for implement your own or to make PRs :sunglasses:
 
 ## Installation
 

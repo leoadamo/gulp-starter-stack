@@ -21,6 +21,7 @@ const browserSync = require('browser-sync').create();
 
 const paths = {
   jsFolder: 'src/assets/js/',
+  favicon: 'src/pages/*.ico',
   srcHTML: 'src/pages/*.html',
   srcJS: 'main.js',
   srcCSS: 'src/assets/scss/main.scss',
@@ -48,7 +49,7 @@ function server() {
     server: {
       baseDir: paths.dist,
     },
-    port: 80,
+    port: 3030,
   });
 }
 
@@ -130,6 +131,11 @@ function moveFonts(done) {
   done();
 }
 
+function moveFavicon(done) {
+  src(paths.favicon).pipe(dest(paths.dist));
+  done();
+}
+
 function clearDist(done) {
   cache.clearAll();
   del.sync([paths.dist]);
@@ -150,6 +156,7 @@ task('js', buildJS);
 task('images', optmizeIMG);
 task('images', webpConvert);
 task('fonts', moveFonts);
-task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts));
+task('favicon', moveFavicon);
+task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts, moveFavicon));
 task('clear', clearDist);
 task('default', parallel(server, watchFiles));

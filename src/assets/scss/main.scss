@@ -1,2 +1,20 @@
+/* VENDORS */
+
 @import 'node_modules/rupture-sass/rupture';
 @import 'node_modules/jeet/jeet';
+@import 'node_modules/sass-rem/rem';
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  background-color: #e74847;
+  color: snow;
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+  letter-spacing: rem(1px);
+  border: 10px solid snow;
+  box-sizing: border-box;
+}

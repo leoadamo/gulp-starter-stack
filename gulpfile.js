@@ -18,29 +18,39 @@ const del = require('del')
 const browserSync = require('browser-sync').create()
 
 const paths = {
-  jsFolder: 'src/assets/js/',
-  favicon: 'src/pages/*.ico',
-  srcHTML: 'src/pages/*.html',
-  srcJS: 'main.js',
-  srcCSS: 'src/assets/scss/main.scss',
-  srcIMG: 'src/assets/images/**/*.+(png|jpg|jpeg)',
-  srcFONTS: 'src/assets/fonts/**/*.*',
-
-  watchHTML: 'src/pages/*.html',
-  watchCSS: 'src/assets/scss/**/*.scss',
-  watchJS: 'src/assets/js/**/*.js',
-  watchIMG: 'src/assets/images/**/*.+(png|jpg|jpeg)',
-  watchFONTS: 'src/assets/fonts/**/*.*',
-
+  src: 'src/',
   dist: 'dist/',
-  distCSS: 'dist/assets/css/',
-  distJS: 'dist/assets/js/',
-  distIMG: 'dist/assets/images/',
-  distFONTS: 'dist/assets/fonts/'
-}
 
-/* In case we have multiple js files, for example, front-end files or back-end files */
-const jsFiles = [paths.srcJS]
+  html: {
+    input: 'src/pages/*.html',
+    output: 'dist/',
+    watch: 'src/pages/*.html'
+  },
+
+  styles: {
+    input: 'src/assets/scss/main.scss',
+    output: 'dist/assets/css/',
+    watch: 'src/assets/scss/**/*.scss'
+  },
+
+  javascript: {
+    input: 'src/assets/js/',
+    output: 'dist/assets/js/',
+    watch: 'src/assets/js/**/*.js'
+  },
+
+  images: {
+    input: 'src/assets/images/**/*.+(png|jpg|jpeg|ico)',
+    output: 'dist/assets/images/',
+    watch: 'src/assets/images/**/*.+(png|jpg|jpeg|ico)'
+  },
+
+  fonts: {
+    input: 'src/assets/fonts/**/*.*',
+    output: 'dist/assets/fonts/',
+    watch: 'src/assets/fonts/**/*.*'
+  }
+}
 
 function server() {
   browserSync.init({
@@ -57,14 +67,14 @@ function reload(done) {
 }
 
 function buildHTML(done) {
-  src(paths.srcHTML)
+  src(paths.html.input)
     .pipe(htmlmin({ collapseWhitespace: true }))
-    .pipe(dest(paths.dist))
+    .pipe(dest(paths.html.output))
   done()
 }
 
 function buildCSS(done) {
-  src(paths.srcCSS)
+  src(paths.styles.input)
     .pipe(sourcemaps.init())
     .pipe(
       sass({
@@ -80,15 +90,22 @@ function buildCSS(done) {
     )
     .pipe(rename({ suffix: '.min' }))
     .pipe(sourcemaps.write('./'))
-    .pipe(dest(paths.distCSS))
+    .pipe(dest(paths.styles.output))
     .pipe(browserSync.stream())
   done()
 }
 
+/*
+  In case we have multiple js files,
+  for example, front-end files or back-end files
+*/
+
+const jsFiles = ['main.js']
+
 function buildJS(done) {
   jsFiles.map(entry =>
     browserify({
-      entries: [paths.jsFolder + entry]
+      entries: [paths.javascript.input + entry]
     })
       .transform(babelify, { presets: ['airbnb'] })
       .bundle()
@@ -98,39 +115,37 @@ function buildJS(done) {
       .pipe(sourcemaps.init({ loadMaps: true }))
       .pipe(uglify())
       .pipe(sourcemaps.write('./'))
-      .pipe(dest(paths.distJS))
+      .pipe(dest(paths.javascript.output))
       .pipe(browserSync.stream())
   )
   done()
 }
 
 function optmizeIMG(done) {
-  src(paths.srcIMG)
+  src(paths.images.input)
     .pipe(
       cache(
-        imagemin([imageminMozjpeg({ quality: 50 }), imageminPngquant({ speed: 1, quality: [0.3, 0.5] })], {
-          verbose: true
-        })
+        imagemin(
+          [imageminMozjpeg({ quality: 50 }), imageminPngquant({ speed: 1, quality: [0.3, 0.5] })],
+          {
+            verbose: true
+          }
+        )
       )
     )
-    .pipe(dest(paths.distIMG))
+    .pipe(dest(paths.images.output))
   done()
 }
 
 function webpConvert(done) {
-  src(paths.srcIMG)
+  src(paths.images.input)
     .pipe(webp())
-    .pipe(dest(paths.distIMG))
+    .pipe(dest(paths.images.output))
   done()
 }
 
 function moveFonts(done) {
-  src(paths.srcFONTS).pipe(dest(paths.distFONTS))
-  done()
-}
-
-function moveFavicon(done) {
-  src(paths.favicon).pipe(dest(paths.dist))
+  src(paths.fonts.input).pipe(dest(paths.fonts.output))
   done()
 }
 
@@ -141,20 +156,29 @@ function clearDist(done) {
 }
 
 function watchFiles() {
-  watch(paths.watchHTML, series(buildHTML, reload))
-  watch(paths.watchCSS, series(buildCSS))
-  watch(paths.watchJS, series(buildJS, reload))
-  watch(paths.watchIMG, series(optmizeIMG, webpConvert))
-  watch(paths.watchFONTS, series(moveFonts, reload))
+  watch(paths.html.watch, series(buildHTML, reload))
+  watch(paths.styles.watch, series(buildCSS))
+  watch(paths.javascript.watch, series(buildJS, reload))
+  watch(paths.images.watch, series(optmizeIMG, webpConvert))
+  watch(paths.fonts.watch, series(moveFonts, reload))
 }
 
 task('html', buildHTML)
 task('css', buildCSS)
 task('js', buildJS)
 task('images', optmizeIMG)
-task('images', webpConvert)
+task('webp', webpConvert)
 task('fonts', moveFonts)
-task('favicon', moveFavicon)
-task('build', parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts, moveFavicon))
 task('clear', clearDist)
-task('default', parallel(server, watchFiles))
+
+/*
+  This task is executed by running 'gulp' command
+*/
+
+task(
+  'default',
+  series(
+    parallel(buildHTML, buildCSS, buildJS, optmizeIMG, webpConvert, moveFonts),
+    parallel(server, watchFiles)
+  )
+)
